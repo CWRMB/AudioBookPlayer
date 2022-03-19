@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">AudioBookPlayer</string>
+
+    <string-array name="book_names">
+        <item>Da Vinci Code</item>
+        <item>Harry Potter and the Deathly Hallows</item>
+        <item>Angels and Demons</item>
+        <item>Twilight</item>
+        <item>Girl with the Dragon Tattoo</item>
+        <item>Lost Symbol</item>
+        <item>The Lovely Bones</item>
+        <item>Very Hungry Caterpillar</item>
+        <item>The Gruffalo</item>
+        <item>A Thousand Splendid Suns</item>
+    </string-array>
+
+    <string-array name="book_authors">
+        <item>Brown, Dan</item>
+        <item>Rowling, J.K.</item>
+        <item>Brown, Dan</item>
+        <item>Meyer, Stephenie</item>
+        <item>Larsson, Stieg</item>
+        <item>Brown, Dan</item>
+        <item>Sebold, Alice</item>
+        <item>Carle, Eric</item>
+        <item>Donaldson, Julia</item>
+        <item>Hosseini, Khaled</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
