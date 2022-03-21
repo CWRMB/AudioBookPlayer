@@ -1,10 +1,13 @@
 package edu.temple.audiobookplayer
 
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -17,13 +20,15 @@ private const val BOOKS_KEY = "book_key"
  * Use the [BookListFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class BookListFragment : Fragment() {
-    private var books: Array<String>? = null
+class BookListFragment(): Fragment() {
+    private var books: ArrayList<Book>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            books = it.getStringArray(BOOKS_KEY)
+            //TODO fix the argument
+            @Suppress("UNCHECKED_CAST")
+            books = it.getSerializable(BOOKS_KEY) as ArrayList<Book>?
         }
     }
 
@@ -38,39 +43,50 @@ class BookListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(view as RecyclerView){
-            // define attributes of view object which are defined in this scope as a recyclerView
-            // requireContext() to tell it I am insisting there is an attached context
-            layoutManager = LinearLayoutManager(requireContext())
+            books?.run{
+
+                val clickEvent = {book: Book -> }
+
+                // define attributes of view object which are defined in this scope as a recyclerView
+                // requireContext() to tell it I am insisting there is an attached context
+                layoutManager = LinearLayoutManager(requireContext())
+                adapter = BookAdapter(BookList(this), clickEvent)
+            }
         }
     }
 
-    class BookAdapter(_books: Array<Book>) : RecyclerView.Adapter<BookAdapter.BookViewHolder>(){
+    class BookAdapter(_books: BookList, _clickEvent: (Book) -> Unit) : RecyclerView.Adapter<BookAdapter.BookViewHolder>(){
         val books = _books
+        val clickEvent = _clickEvent
 
         class BookViewHolder(_view: View) : RecyclerView.ViewHolder(_view){
             val view = _view
-
-            // section for onclick listener to update our clicked object
-            init{
-
-            }
+            val author = view.findViewById<TextView>(R.id.text_author)
+            val title = view.findViewById<TextView>(R.id.text_title)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
-            // Have to change the xml layout to a recycler view
+            // inflate out xml layout that holds the text attributes for each book in recycler
             val layout = LayoutInflater.from(parent.context).inflate(
-                R.layout.fragment_book_list, parent, false
+                R.layout.book_list_layout, parent, false
             )
 
             return BookViewHolder(layout)
         }
 
         override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
-            TODO("Not yet implemented")
+            // books.books meaning our books list accessing the data field that is the string called books
+            // next time better naming would be good
+            holder.author.text = books.books[position].author
+            holder.title.text = books.books[position].title
+
+
+            // on click listener for what index we press on
+            holder.view.setOnClickListener{ clickEvent(books.books[position]) }
         }
 
         override fun getItemCount(): Int {
-            return books.size
+            return books.books.size
         }
 
     }

@@ -1,6 +1,6 @@
 package edu.temple.audiobookplayer
 
-data class BookList(val books: ArrayList<Book>) {
+data class BookList(var books: ArrayList<Book>) {
 
     fun add(Book: Book){
         books.add(Book)
