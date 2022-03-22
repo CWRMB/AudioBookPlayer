@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/text_author"
+        android:id="@+id/display_author"
         android:layout_width="350dp"
         android:layout_height="50dp"
         app:layout_constraintBottom_toBottomOf="parent"

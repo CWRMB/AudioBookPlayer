@@ -1,7 +1,6 @@
 package edu.temple.audiobookplayer
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -22,11 +21,15 @@ private const val BOOKS_KEY = "book_key"
  */
 class BookListFragment(): Fragment() {
     private var books: ArrayList<Book>? = null
+    private lateinit var bookViewModel: BookViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        bookViewModel = ViewModelProvider(requireActivity()).get(BookViewModel::class.java)
+
         arguments?.let {
-            //TODO fix the argument
+            // get the arraylist from the key in newInstance()
             @Suppress("UNCHECKED_CAST")
             books = it.getSerializable(BOOKS_KEY) as ArrayList<Book>?
         }
@@ -45,7 +48,8 @@ class BookListFragment(): Fragment() {
         with(view as RecyclerView){
             books?.run{
 
-                val clickEvent = {book: Book -> }
+                // on click function for each book element
+                val clickEvent = {book: Book -> bookViewModel.setSelectedBook(book)}
 
                 // define attributes of view object which are defined in this scope as a recyclerView
                 // requireContext() to tell it I am insisting there is an attached context
@@ -54,14 +58,14 @@ class BookListFragment(): Fragment() {
             }
         }
     }
-
+    // out adapter class for our recycler
     class BookAdapter(_books: BookList, _clickEvent: (Book) -> Unit) : RecyclerView.Adapter<BookAdapter.BookViewHolder>(){
         val books = _books
         val clickEvent = _clickEvent
 
         class BookViewHolder(_view: View) : RecyclerView.ViewHolder(_view){
             val view = _view
-            val author = view.findViewById<TextView>(R.id.text_author)
+            val author = view.findViewById<TextView>(R.id.display_author)
             val title = view.findViewById<TextView>(R.id.text_title)
         }
 
