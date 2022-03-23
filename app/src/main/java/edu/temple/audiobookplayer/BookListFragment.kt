@@ -49,7 +49,10 @@ class BookListFragment(): Fragment() {
             books?.run{
 
                 // on click function for each book element
-                val clickEvent = {book: Book -> bookViewModel.setSelectedBook(book)}
+                val clickEvent = {
+                    book: Book -> bookViewModel.setSelectedBook(book)
+                    (requireActivity() as BookFragmentInterface).bookSelected()
+                }
 
                 // define attributes of view object which are defined in this scope as a recyclerView
                 // requireContext() to tell it I am insisting there is an attached context
@@ -105,5 +108,9 @@ class BookListFragment(): Fragment() {
                     putSerializable(BOOKS_KEY, book_list.books)
                 }
             }
+    }
+
+    interface BookFragmentInterface {
+        fun bookSelected()
     }
 }
