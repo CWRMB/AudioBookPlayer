@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         val authors = resources.getStringArray(R.array.book_authors)
         val titles = resources.getStringArray(R.array.book_names)
 
-        val books: ArrayList<Book> = arrayListOf(Book("",""))
+        val books: ArrayList<Book> = ArrayList()
 
         for(i in authors.indices){
             books.add(Book(titles[i], authors[i]))
