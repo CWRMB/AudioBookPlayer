@@ -30,9 +30,9 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
         val books: ArrayList<Book> = ArrayList()
 
-        for(i in authors.indices){
-            books.add(Book(titles[i], authors[i]))
-        }
+//        for(i in authors.indices){
+//            books.add(Book(titles[i], authors[i]))
+//        }
 
         val my_books: BookList = BookList(books)
 
