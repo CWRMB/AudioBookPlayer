@@ -7,9 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import java.io.Serializable
 
 // this fragment will hold our display information for the book we click on
-class DisplayFragment : Fragment() {
+class DisplayFragment : Fragment(), Serializable {
 
     lateinit var bookViewModel: BookViewModel
 
@@ -36,4 +37,5 @@ class DisplayFragment : Fragment() {
             view.findViewById<TextView>(R.id.display_title).text = it.title
         }
     }
+
 }
