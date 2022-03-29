@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">AudioBookPlayer</string>
 
+    <string name="search_button">Search</string>
+
     <string-array name="book_names">
         <item>Da Vinci Code</item>
         <item>Harry Potter and the Deathly Hallows</item>
