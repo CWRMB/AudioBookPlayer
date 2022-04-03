@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import com.squareup.picasso.Picasso
 import java.io.Serializable
 
 // this fragment will hold our display information for the book we click on
@@ -36,7 +37,7 @@ class DisplayFragment : Fragment(), Serializable {
         bookViewModel.getSelectedBook().observe(requireActivity()){
             view.findViewById<TextView>(R.id.display_author).text = it.author
             view.findViewById<TextView>(R.id.display_title).text = it.title
-            view.findViewById<ImageView>(R.id.bookCover).setImageResource(it.id)
+            Picasso.get().load(it.coverURL).into(view.findViewById<ImageView>(R.id.bookCover))
         }
     }
 

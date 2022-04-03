@@ -15,7 +15,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import org.w3c.dom.Text
+import java.net.URL
 
 class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface {
 
@@ -28,6 +32,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     }
 
     lateinit var searchButton : Button
+    lateinit var my_books : BookList
+    lateinit var books : ArrayList<Book>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,13 +45,14 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         val authors = resources.getStringArray(R.array.book_authors)
         val titles = resources.getStringArray(R.array.book_names)
 
-        val books: ArrayList<Book> = ArrayList()
+        books = ArrayList()
 
 //        for(i in authors.indices){
 //            books.add(Book(titles[i], authors[i]))
 //        }
 
-        val my_books: BookList = BookList(books)
+        //initialize books of an empty array to prevent nullable data
+        my_books = BookList(books)
 
         if(supportFragmentManager.findFragmentById(R.id.container1) is DisplayFragment){
             supportFragmentManager.popBackStack()
@@ -57,7 +64,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             supportFragmentManager.beginTransaction().add(
                 R.id.container1, BookListFragment.newInstance(my_books)).commit()
         }
-        //
         else if(isSingleContainer && selectedBookViewModel.getSelectedBook().value != null){
             supportFragmentManager.beginTransaction().replace(R.id.container1, DisplayFragment())
                 .setReorderingAllowed(true).addToBackStack(null).commit()
@@ -96,7 +102,28 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     }
 
     suspend fun fetchBook(bookID: String){
-        Log.v("BookID",bookID)
+        //Log.v("BookID",bookID)
+        val jsonArray: JSONArray
+
+        withContext(Dispatchers.IO){
+            // usually put try catch block here to check for proper JSON format
+            jsonArray = JSONArray(URL("https://kamorris.com/lab/cis3515/search.php?term=$bookID")
+                .openStream()
+                .bufferedReader()
+                .readLine())
+        }
+
+        // assemble our book list information once received from the JSON array
+        for(i in 0 until jsonArray.length()){
+            books.add(Book(jsonArray.getJSONObject(i).getString("title"),
+                jsonArray.getJSONObject(i).getString("author"),
+                jsonArray.getJSONObject(i).getInt("id"),
+                jsonArray.getJSONObject(i).getString("cover_url")))
+        }
+
+        my_books = BookList(books)
+        supportFragmentManager.beginTransaction().replace(
+            R.id.container1, BookListFragment.newInstance(my_books)).commit()
     }
 
     // use an interface nested inside our BookListFragment class to pass our data to the fragment
