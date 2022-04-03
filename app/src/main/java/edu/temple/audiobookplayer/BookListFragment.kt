@@ -62,12 +62,6 @@ class BookListFragment(): Fragment() {
         }
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        if(savedInstanceState != null){
-
-        }
-    }
     // out adapter class for our recycler
     class BookAdapter(_books: BookList, _clickEvent: (Book) -> Unit) : RecyclerView.Adapter<BookAdapter.BookViewHolder>(){
         val books = _books

@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         }
     }
 
+    // method for fetching the book typed in and uploading it to our fragments
     suspend fun fetchBook(bookID: String){
         //Log.v("BookID",bookID)
         val jsonArray: JSONArray
@@ -112,6 +113,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                 .bufferedReader()
                 .readLine())
         }
+
+        books = ArrayList()
 
         // assemble our book list information once received from the JSON array
         for(i in 0 until jsonArray.length()){
