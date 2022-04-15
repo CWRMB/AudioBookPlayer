@@ -105,6 +105,12 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     suspend fun fetchBook(bookID: String){
         //Log.v("BookID",bookID)
         val jsonArray: JSONArray
+        // this gets the url containing each duration JSON ARRAY
+        var jsonDuration: JSONObject
+        // this will hold an array of duration ints i did it this way since its never specified
+        // if I will be searching by ID or book name so I am assuming book name and this is
+        // the work around
+        var array_of_duration = arrayListOf<Int>()
 
         withContext(Dispatchers.IO){
             // usually put try catch block here to check for proper JSON format
@@ -112,6 +118,20 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                 .openStream()
                 .bufferedReader()
                 .readLine())
+
+            // method to get the duration from the id which we acquire above
+            var id : Int
+
+            // get the other id links information from each ID
+            for(i in 0 until jsonArray.length()){
+                id = jsonArray.getJSONObject(i).getInt("id")
+                // get the Json object and extract each duration from each book id
+                jsonDuration = JSONObject(URL("https://kamorris.com/lab/cis3515/book.php?id=$id")
+                    .openStream().bufferedReader().readLine())
+
+                array_of_duration.add(jsonDuration.getInt("duration"))
+                Log.d("Duration", array_of_duration[i].toString())
+            }
         }
 
         books = ArrayList()
@@ -121,7 +141,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             books.add(Book(jsonArray.getJSONObject(i).getString("title"),
                 jsonArray.getJSONObject(i).getString("author"),
                 jsonArray.getJSONObject(i).getInt("id"),
-                jsonArray.getJSONObject(i).getString("cover_url")))
+                jsonArray.getJSONObject(i).getString("cover_url"),
+                array_of_duration[i]))
         }
 
         my_books = BookList(books)

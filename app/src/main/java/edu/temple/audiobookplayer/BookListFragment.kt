@@ -7,8 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import java.net.URL
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -58,6 +64,21 @@ class BookListFragment(): Fragment() {
                 // requireContext() to tell it I am insisting there is an attached context
                 layoutManager = LinearLayoutManager(requireContext())
                 adapter = BookAdapter(BookList(this), clickEvent)
+            }
+        }
+        fun returnBookID(book: Book){
+            val ID = book.id
+
+            lifecycleScope.launch(Dispatchers.Main){
+
+                val jsonArray: JSONArray
+
+                withContext(Dispatchers.IO){
+                    jsonArray = JSONArray(URL("https://kamorris.com/lab/cis3515/book.php?id=$ID")
+                        .openStream()
+                        .bufferedReader()
+                        .readLine())
+                }
             }
         }
     }
