@@ -8,52 +8,61 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="209dp">
 
         <SeekBar
             android:id="@+id/seekBar2"
             android:layout_width="298dp"
             android:layout_height="89dp"
-            android:layout_marginTop="84dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.495"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/button_play" />
 
         <Button
             android:id="@+id/button_stop"
-            android:layout_width="69dp"
-            android:layout_height="59dp"
-            android:text="Stop"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.163"
+            android:layout_width="68dp"
+            android:layout_height="50dp"
+            app:icon="@android:drawable/btn_dialog"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/button_play"
+            app:layout_constraintHorizontal_bias="0.835"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.583" />
+            app:layout_constraintVertical_bias="0.39" />
 
         <Button
             android:id="@+id/button_pause"
-            android:layout_width="69dp"
-            android:layout_height="59dp"
+            android:layout_width="68dp"
+            android:layout_height="50dp"
             android:text="Pause"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar2"
+            app:icon="@android:drawable/ic_media_pause"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.161"
+            app:layout_constraintHorizontal_bias="0.149"
             app:layout_constraintStart_toEndOf="@+id/button_play"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.583" />
+            app:layout_constraintVertical_bias="0.39" />
 
         <Button
             android:id="@+id/button_play"
             android:layout_width="141dp"
             android:layout_height="50dp"
-            android:layout_marginStart="8dp"
             android:text="Play"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar2"
-            app:layout_constraintStart_toEndOf="@+id/button_stop"
+            app:icon="@android:drawable/ic_media_play"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.578" />
+            app:layout_constraintVertical_bias="0.39" />
+
+        <TextView
+            android:id="@+id/titleDisplay"
+            android:layout_width="294dp"
+            android:layout_height="31dp"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toTopOf="@+id/button_play"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

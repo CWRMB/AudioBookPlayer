@@ -186,18 +186,21 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
     // receive information from our fragments buttons
     override fun play() {
-        Log.v("message","PLAY")
         if((isConnected)){
-            audioBinder.play(1)
+            selectedBookViewModel.selectedBook.value?.let { audioBinder.play(it.id) }
         }
     }
 
     override fun pause() {
-        TODO("Not yet implemented")
+        if((isConnected)){
+            audioBinder.pause()
+        }
     }
 
     override fun stop() {
-        TODO("Not yet implemented")
+        if((isConnected)){
+            audioBinder.stop()
+        }
     }
 
     override fun onDestroy() {

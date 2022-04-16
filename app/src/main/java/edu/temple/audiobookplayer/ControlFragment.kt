@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import edu.temple.audlibplayer.PlayerService
 
@@ -14,7 +15,10 @@ class ControlFragment : Fragment(){
 
     lateinit var bookViewModel: BookViewModel
     lateinit var playButton: Button
-    val bindAudio = PlayerService()
+    lateinit var pauseButton: Button
+    lateinit var stopButton: Button
+    lateinit var bookTitle: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -31,12 +35,29 @@ class ControlFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // set on click listener for each button
         playButton = view.findViewById(R.id.button_play)
+        pauseButton = view.findViewById(R.id.button_pause)
+        stopButton = view.findViewById(R.id.button_stop)
+        bookTitle = view.findViewById(R.id.titleDisplay)
+
         playButton.setOnClickListener{
             (requireActivity() as ControlFragment.ControlFragmentInterface).play()
+            bookTitle.text = bookViewModel.selectedBook.value?.title.plus("(Now Playing)")
         }
+
+        pauseButton.setOnClickListener{
+            (requireActivity() as ControlFragment.ControlFragmentInterface).pause()
+        }
+
+        stopButton.setOnClickListener {
+            (requireActivity() as ControlFragment.ControlFragmentInterface).stop()
+        }
+
     }
 
+    // interface to hold abstract data to be implemented into main
     public interface ControlFragmentInterface {
         fun play()
         fun pause()
