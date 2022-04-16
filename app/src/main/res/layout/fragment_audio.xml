@@ -11,7 +11,7 @@
         android:layout_height="209dp">
 
         <SeekBar
-            android:id="@+id/seekBar2"
+            android:id="@+id/bookProgress"
             android:layout_width="298dp"
             android:layout_height="89dp"
             app:layout_constraintEnd_toEndOf="parent"
