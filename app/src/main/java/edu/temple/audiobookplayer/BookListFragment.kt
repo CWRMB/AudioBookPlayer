@@ -66,21 +66,6 @@ class BookListFragment(): Fragment() {
                 adapter = BookAdapter(BookList(this), clickEvent)
             }
         }
-        fun returnBookID(book: Book){
-            val ID = book.id
-
-            lifecycleScope.launch(Dispatchers.Main){
-
-                val jsonArray: JSONArray
-
-                withContext(Dispatchers.IO){
-                    jsonArray = JSONArray(URL("https://kamorris.com/lab/cis3515/book.php?id=$ID")
-                        .openStream()
-                        .bufferedReader()
-                        .readLine())
-                }
-            }
-        }
     }
 
     // out adapter class for our recycler

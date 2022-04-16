@@ -1,27 +1,26 @@
 package edu.temple.audiobookplayer
 
 import android.app.SearchManager
+import android.content.ComponentName
 import android.content.Intent
-import android.content.res.Configuration
+import android.content.ServiceConnection
+import android.os.*
+import android.text.Layout
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import edu.temple.audlibplayer.PlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import org.w3c.dom.Text
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface {
+class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface, ControlFragment.ControlFragmentInterface {
 
     private val isSingleContainer : Boolean by lazy{
         findViewById<View>(R.id.container2) == null
@@ -33,7 +32,30 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
     lateinit var searchButton : Button
     lateinit var my_books : BookList
+    lateinit var playButton: Button
     lateinit var books : ArrayList<Book>
+
+    lateinit var seekProgress: String
+
+    var isConnected = false
+    lateinit var audioBinder: PlayerService.MediaControlBinder
+
+    val audioHandler = Handler(Looper.getMainLooper()){
+        seekProgress = it.what.toString()
+        true
+    }
+
+    val serviceConnection = object: ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            isConnected = true
+            audioBinder = service as PlayerService.MediaControlBinder
+            audioBinder.setProgressHandler(audioHandler)
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isConnected = false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,14 +64,10 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         searchButton = findViewById<Button>(R.id.searchButton)
 
         // creation of our book list from our strings.xml
-        val authors = resources.getStringArray(R.array.book_authors)
-        val titles = resources.getStringArray(R.array.book_names)
+        //val authors = resources.getStringArray(R.array.book_authors)
+        //val titles = resources.getStringArray(R.array.book_names)
 
         books = ArrayList()
-
-//        for(i in authors.indices){
-//            books.add(Book(titles[i], authors[i]))
-//        }
 
         //initialize books of an empty array to prevent nullable data
         my_books = BookList(books)
@@ -63,6 +81,9 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             // pass our book list to the main container which is a fragment adapter for recyclerview
             supportFragmentManager.beginTransaction().add(
                 R.id.container1, BookListFragment.newInstance(my_books)).commit()
+
+            supportFragmentManager.beginTransaction().add(
+                R.id.AudioControls, ControlFragment()).commit()
         }
         else if(isSingleContainer && selectedBookViewModel.getSelectedBook().value != null){
             supportFragmentManager.beginTransaction().replace(R.id.container1, DisplayFragment())
@@ -79,7 +100,9 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             onSearchRequested()
             //handleIntent(intent)
         }
-
+        bindService(Intent(this, PlayerService::class.java),
+            serviceConnection,
+            BIND_AUTO_CREATE)
     }
 
     // since our instance activity is singleTop we must override this function to
@@ -130,7 +153,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                     .openStream().bufferedReader().readLine())
 
                 array_of_duration.add(jsonDuration.getInt("duration"))
-                Log.d("Duration", array_of_duration[i].toString())
             }
         }
 
@@ -162,4 +184,24 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         }
     }
 
+    // receive information from our fragments buttons
+    override fun play() {
+        Log.v("message","PLAY")
+        if((isConnected)){
+            audioBinder.play(1)
+        }
+    }
+
+    override fun pause() {
+        TODO("Not yet implemented")
+    }
+
+    override fun stop() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unbindService(serviceConnection)
+    }
 }
