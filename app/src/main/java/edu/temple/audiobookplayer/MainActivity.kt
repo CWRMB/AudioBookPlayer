@@ -189,18 +189,48 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         }
     }
 
+//    override fun progressHandler(progress: Int): Int{
+//        // get our seek bar and set the max value
+//        val seekBar = findViewById<SeekBar>(R.id.bookProgress)
+//        selectedBookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
+//
+//        // this part is responsible for moving the sliding according to the progress of the book
+//        val audioHandler = Handler(Looper.getMainLooper()){
+//            seekProgress += it.what + 1 + progress
+//            seekBar?.progress = seekProgress
+//
+//            if(seekBar.progress >= seekBar.max){
+//                seekBar.progress = seekBar.max
+//            }
+//
+//            selectedBookViewModel.setBookProgress(seekProgress)
+//
+//            true
+//        }
+//        audioBinder.setProgressHandler(audioHandler)
+//
+//        return seekProgress
+//    }
+
     // receive information from our fragments buttons
     override fun play() {
-        val seekBar = findViewById<SeekBar>(R.id.bookProgress)
-        selectedBookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
 
         if((isConnected)){
+            // get our seek bar and set the max value
+            val seekBar = findViewById<SeekBar>(R.id.bookProgress)
+            selectedBookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
+
             // this part is responsible for moving the sliding according to the progress of the book
             val audioHandler = Handler(Looper.getMainLooper()){
-                //selectedBookViewModel.selectedBook.value?.let{ seekBar?.max = it.duration}
                 seekProgress += it.what + 1
-                Log.v("Progress",seekProgress.toString())
                 seekBar?.progress = seekProgress
+
+                if(seekBar.progress >= seekBar.max){
+                    seekBar.progress = seekBar.max
+                }
+
+                selectedBookViewModel.setBookProgress(seekProgress)
+
                 true
             }
             audioBinder.setProgressHandler(audioHandler)
@@ -215,8 +245,36 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     }
 
     override fun stop() {
+        val seekBar = findViewById<SeekBar>(R.id.bookProgress)
         if((isConnected)){
+            //seekBar.progress = 0
+
+            //selectedBookViewModel.setBookProgress(0)
+
             audioBinder.stop()
+//            val seekBar = findViewById<SeekBar>(R.id.bookProgress)
+//            seekBar.progress = 0
+//            supportFragmentManager.beginTransaction().replace(R.id.AudioControls, ControlFragment()
+//            ).commit()
+        }
+    }
+
+    // change progress of the book from the seek slider
+    override fun progress(progress: Int) {
+//        Log.v("Progress changed",progress.toString())
+        val duration = selectedBookViewModel.selectedBook.value?.duration
+
+        // get percentage
+        val ratio = progress.div(100.00)
+
+        //Log.v("Duration",duration.toString())
+//        Log.v("ratio",ratio.toString())
+//        if (duration != null) {
+//            Log.v("Recovered duration", (duration*ratio).toString())
+//        }
+
+        if (duration != null) {
+            audioBinder.seekTo((duration * ratio).toInt())
         }
     }
 
