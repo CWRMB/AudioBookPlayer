@@ -13,17 +13,25 @@ import androidx.lifecycle.ViewModelProvider
 
 class ControlFragment : Fragment(){
 
-    lateinit var bookViewModel: BookViewModel
     lateinit var playButton: Button
     lateinit var pauseButton: Button
     lateinit var stopButton: Button
     lateinit var bookTitle: TextView
     lateinit var seekBar: SeekBar
+    var isPaused = false
+
+    private val bookViewModel : BookViewModel by lazy{
+        ViewModelProvider(requireActivity()).get(BookViewModel::class.java)
+    }
+
+    // save pause info across state changes
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("isPaused",isPaused)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        bookViewModel = ViewModelProvider(requireActivity()).get(BookViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -37,6 +45,11 @@ class ControlFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // restore our pause information
+        if(savedInstanceState != null){
+            isPaused = savedInstanceState.getBoolean("isPaused")
+        }
+
         // set on click listener for each button
         playButton = view.findViewById(R.id.button_play)
         pauseButton = view.findViewById(R.id.button_pause)
@@ -48,6 +61,9 @@ class ControlFragment : Fragment(){
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seek: SeekBar,
                                            progress: Int, fromUser: Boolean) {
+                if(fromUser){
+                    (requireActivity() as ControlFragment.ControlFragmentInterface).progress(progress)
+                }
             }
 
             override fun onStartTrackingTouch(seek: SeekBar) {
@@ -55,37 +71,33 @@ class ControlFragment : Fragment(){
             }
 
             override fun onStopTrackingTouch(seek: SeekBar) {
-                // write custom code for progress is stopped
-                (requireActivity() as ControlFragment.ControlFragmentInterface).progress(seek.progress)
-                bookViewModel.setBookProgress(seek.progress)
             }
         })
-
-        var isPaused = false
 
         // functionality that passes the button presses to our interface to do service interaction with
         // these also change the title of the text view to display the playing title
         playButton.setOnClickListener{
             (requireActivity() as ControlFragment.ControlFragmentInterface).play()
-            if(bookViewModel.selectedBook.value != null){
-                bookTitle.text = bookViewModel.selectedBook.value?.title.plus(" (Now Playing)")
+            bookViewModel.getPlayingBook().observe(requireActivity()){
+                bookTitle.text = it.title.plus(" (Now Playing)")
             }
-//            bookViewModel.getBookProgress().observe(requireActivity()){
-//                bookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
-//                seekBar.progress = it
-//                Log.v("Control prgoress",it.toString())
-//            }
         }
 
         pauseButton.setOnClickListener{
             (requireActivity() as ControlFragment.ControlFragmentInterface).pause()
-            if(bookViewModel.selectedBook.value != null && !isPaused){
-                bookTitle.text = bookViewModel.selectedBook.value?.title.plus(" (Paused)")
-                isPaused = true
+            if(!isPaused){
+                bookViewModel.getPlayingBook().observe(requireActivity()){
+                    bookTitle.text = it.title.plus(" (Paused)")
+                    isPaused = true
+                }
             }
-            else if(bookViewModel.selectedBook.value != null && isPaused){
-                bookTitle.text = bookViewModel.selectedBook.value?.title.plus(" (Now Playing)")
+            else if(isPaused){
+                bookViewModel.getPlayingBook().observe(requireActivity()){
+                    bookTitle.text = it.title.plus(" (Now Playing)")
+                    isPaused = false
+                }
             }
+
         }
 
         stopButton.setOnClickListener {
@@ -93,6 +105,19 @@ class ControlFragment : Fragment(){
             bookTitle.text = ""
         }
 
+        //set the text for playing book
+        bookViewModel.getPlayingBook().observe(requireActivity()){
+            if(isPaused){
+                bookTitle.text = it.title.plus(" (Paused)")
+            }
+            else{
+                bookTitle.text = it.title.plus(" (Now Playing)")
+            }
+        }
+    }
+
+    fun setPlayProgress(progress: Int){
+        seekBar.setProgress(progress, true)
     }
 
     // interface to hold abstract data to be implemented into main

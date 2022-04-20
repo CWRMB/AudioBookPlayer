@@ -39,8 +39,8 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
         android:name="edu.temple.audiobookplayer.ControlFragment"
-        android:layout_width="261dp"
-        android:layout_height="156dp"
+        android:layout_width="357dp"
+        android:layout_height="175dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/container1"
         app:layout_constraintTop_toTopOf="parent"

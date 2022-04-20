@@ -9,9 +9,10 @@ class BookViewModel : ViewModel() {
         MutableLiveData<Book>()
     }
 
-    val bookProgress: MutableLiveData<Int> by lazy{
-        MutableLiveData<Int>()
+    val playingBook: MutableLiveData<Book> by lazy{
+        MutableLiveData<Book>()
     }
+
 
     fun setSelectedBook(book: Book){
         selectedBook.value = book
@@ -22,12 +23,13 @@ class BookViewModel : ViewModel() {
         return selectedBook
     }
 
-    fun getBookProgress(): LiveData<Int>{
-        return bookProgress
+
+    fun setPlayingBook(selectedBook: Book?){
+        this.playingBook.value = selectedBook
     }
 
-    fun setBookProgress(progress: Int){
-        bookProgress.value = progress
+    fun getPlayingBook(): LiveData<Book>{
+        return playingBook
     }
 
 }

@@ -5,12 +5,14 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
+import android.service.controls.Control
 import android.text.Layout
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.SeekBar
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import edu.temple.audlibplayer.PlayerService
@@ -31,6 +33,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         ViewModelProvider(this).get(BookViewModel::class.java)
     }
 
+    private lateinit var serviceIntent: Intent
+
     lateinit var searchButton : Button
     lateinit var my_books : BookList
     lateinit var books : ArrayList<Book>
@@ -40,33 +44,12 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     var isConnected = false
     lateinit var audioBinder: PlayerService.MediaControlBinder
 
-//    val seekBar = supportFragmentManager.findFragmentById(R.id.AudioControls)?.view?.findViewById<SeekBar>(
-//        R.id.bookProgress
-//    )
-
-//    val audioHandler = Handler(Looper.getMainLooper()){
-//        //selectedBookViewModel.selectedBook.value?.let{ seekBar?.max = it.duration}
-//        seekProgress += it.what + 1
-////        seekBar?.progress = seekProgress
-//        true
-//    }
-
-    val serviceConnection = object: ServiceConnection{
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            isConnected = true
-            audioBinder = service as PlayerService.MediaControlBinder
-            //audioBinder.setProgressHandler(audioHandler)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            isConnected = false
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         searchButton = findViewById<Button>(R.id.searchButton)
+
+        serviceIntent = Intent(this, PlayerService::class.java)
 
         // creation of our book list from our strings.xml
         //val authors = resources.getStringArray(R.array.book_authors)
@@ -86,9 +69,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             // pass our book list to the main container which is a fragment adapter for recyclerview
             supportFragmentManager.beginTransaction().add(
                 R.id.container1, BookListFragment.newInstance(my_books)).commit()
-
-            supportFragmentManager.beginTransaction().add(
-                R.id.AudioControls, ControlFragment()).commit()
         }
         else if(isSingleContainer && selectedBookViewModel.getSelectedBook().value != null){
             supportFragmentManager.beginTransaction().replace(R.id.container1, DisplayFragment())
@@ -189,52 +169,47 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         }
     }
 
-//    override fun progressHandler(progress: Int): Int{
-//        // get our seek bar and set the max value
-//        val seekBar = findViewById<SeekBar>(R.id.bookProgress)
-//        selectedBookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
-//
-//        // this part is responsible for moving the sliding according to the progress of the book
-//        val audioHandler = Handler(Looper.getMainLooper()){
-//            seekProgress += it.what + 1 + progress
-//            seekBar?.progress = seekProgress
-//
-//            if(seekBar.progress >= seekBar.max){
-//                seekBar.progress = seekBar.max
-//            }
-//
-//            selectedBookViewModel.setBookProgress(seekProgress)
-//
-//            true
-//        }
-//        audioBinder.setProgressHandler(audioHandler)
-//
-//        return seekProgress
-//    }
+    val serviceConnection = object: ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            isConnected = true
+            audioBinder = service as PlayerService.MediaControlBinder
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isConnected = false
+        }
+    }
 
     // receive information from our fragments buttons
     override fun play() {
 
         if((isConnected)){
-            // get our seek bar and set the max value
-            val seekBar = findViewById<SeekBar>(R.id.bookProgress)
-            selectedBookViewModel.selectedBook.value?.let{ seekBar.max = it.duration}
+            // set the playing book
+            selectedBookViewModel.getSelectedBook().observe(this){
+                selectedBookViewModel.setPlayingBook(it)
+            }
 
             // this part is responsible for moving the sliding according to the progress of the book
-            val audioHandler = Handler(Looper.getMainLooper()){
-                seekProgress += it.what + 1
-                seekBar?.progress = seekProgress
+            val audioHandler = Handler(Looper.getMainLooper()) {msg ->
 
-                if(seekBar.progress >= seekBar.max){
-                    seekBar.progress = seekBar.max
+                msg.obj?.let { msgObj ->
+                    val bookProgress = msgObj as PlayerService.BookProgress
+
+                    supportFragmentManager.findFragmentById(R.id.AudioControls)?.run {
+                        with(this as ControlFragment) {
+                            selectedBookViewModel.getPlayingBook().value?.also {
+                                setPlayProgress(((bookProgress.progress / it.duration.toFloat()) * 100).toInt())
+                            }
+                        }
+                    }
                 }
-
-                selectedBookViewModel.setBookProgress(seekProgress)
-
                 true
             }
+            // pass the handler
             audioBinder.setProgressHandler(audioHandler)
+            //set the playing book
             selectedBookViewModel.selectedBook.value?.let { audioBinder.play(it.id)}
+            startService(serviceIntent)
         }
     }
 
@@ -245,33 +220,18 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     }
 
     override fun stop() {
-        val seekBar = findViewById<SeekBar>(R.id.bookProgress)
         if((isConnected)){
-            //seekBar.progress = 0
-
-            //selectedBookViewModel.setBookProgress(0)
-
             audioBinder.stop()
-//            val seekBar = findViewById<SeekBar>(R.id.bookProgress)
-//            seekBar.progress = 0
-//            supportFragmentManager.beginTransaction().replace(R.id.AudioControls, ControlFragment()
-//            ).commit()
+            stopService(serviceIntent)
         }
     }
 
     // change progress of the book from the seek slider
     override fun progress(progress: Int) {
-//        Log.v("Progress changed",progress.toString())
         val duration = selectedBookViewModel.selectedBook.value?.duration
 
         // get percentage
         val ratio = progress.div(100.00)
-
-        //Log.v("Duration",duration.toString())
-//        Log.v("ratio",ratio.toString())
-//        if (duration != null) {
-//            Log.v("Recovered duration", (duration*ratio).toString())
-//        }
 
         if (duration != null) {
             audioBinder.seekTo((duration * ratio).toInt())
