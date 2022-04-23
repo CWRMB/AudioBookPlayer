@@ -20,8 +20,8 @@
         android:name="edu.temple.audiobookplayer.DisplayFragment"
         android:layout_width="468dp"
         android:layout_height="243dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".70"
         app:layout_constraintStart_toEndOf="@+id/container1"
         app:layout_constraintTop_toBottomOf="@+id/fragmentContainerView" />
 
@@ -39,9 +39,10 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
         android:name="edu.temple.audiobookplayer.ControlFragment"
-        android:layout_width="357dp"
-        android:layout_height="175dp"
+        android:layout_width="468dp"
+        android:layout_height="169dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".30"
         app:layout_constraintStart_toEndOf="@+id/container1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.75" />

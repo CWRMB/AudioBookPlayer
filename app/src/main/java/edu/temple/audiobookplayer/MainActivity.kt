@@ -1,9 +1,12 @@
 package edu.temple.audiobookplayer
 
+import android.app.DownloadManager
 import android.app.SearchManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.Uri
 import android.os.*
 import android.service.controls.Control
 import android.text.Layout
@@ -21,7 +24,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Files.exists
+import java.nio.file.Paths
 
 class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface, ControlFragment.ControlFragmentInterface {
 
@@ -85,6 +93,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             onSearchRequested()
             //handleIntent(intent)
         }
+
         bindService(Intent(this, PlayerService::class.java),
             serviceConnection,
             BIND_AUTO_CREATE)
@@ -130,6 +139,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             // method to get the duration from the id which we acquire above
             var id : Int
 
+            // could optimize this
             // get the other id links information from each ID
             for(i in 0 until jsonArray.length()){
                 id = jsonArray.getJSONObject(i).getInt("id")
@@ -183,6 +193,42 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     // receive information from our fragments buttons
     override fun play() {
 
+        val filename = selectedBookViewModel.getSelectedBook().value?.id.toString()
+        val file = File(filesDir, filename)
+
+        // play book from downloaded file
+        if(file.exists()){
+            // set the playing book
+            selectedBookViewModel.getSelectedBook().observe(this){
+                selectedBookViewModel.setPlayingBook(it)
+            }
+
+            // this part is responsible for moving the sliding according to the progress of the book
+            val audioHandler = Handler(Looper.getMainLooper()) {msg ->
+
+                msg.obj?.let { msgObj ->
+                    val bookProgress = msgObj as PlayerService.BookProgress
+
+                    supportFragmentManager.findFragmentById(R.id.AudioControls)?.run {
+                        with(this as ControlFragment) {
+                            selectedBookViewModel.getPlayingBook().value?.also {
+                                setPlayProgress(((bookProgress.progress / it.duration.toFloat()) * 100).toInt())
+                            }
+                        }
+                    }
+                }
+                true
+            }
+            // pass the handler
+            audioBinder.setProgressHandler(audioHandler)
+            //TODO save start position
+            audioBinder.play(file,0)
+            Log.v("DOWNLOADED FILE PLAY","TRUE")
+            startService(serviceIntent)
+            return
+        }
+
+        // stream book from id and download on background thread
         if((isConnected)){
             // set the playing book
             selectedBookViewModel.getSelectedBook().observe(this){
@@ -209,6 +255,12 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             audioBinder.setProgressHandler(audioHandler)
             //set the playing book
             selectedBookViewModel.selectedBook.value?.let { audioBinder.play(it.id)}
+
+            // download book
+            var id: Int = 0
+            selectedBookViewModel.playingBook.value?.let{ id = it.id}
+            downloadBook(URL("https://kamorris.com/lab/audlib/download.php?id=$id"), id.toString())
+
             startService(serviceIntent)
         }
     }
@@ -221,6 +273,15 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
     override fun stop() {
         if((isConnected)){
+            // set the seekBar progress to 0
+            supportFragmentManager.findFragmentById(R.id.AudioControls)?.run {
+                with(this as ControlFragment) {
+                    selectedBookViewModel.getPlayingBook().value?.also {
+                        setPlayProgress(0)
+                    }
+                }
+            }
+            // stop service and streaming
             audioBinder.stop()
             stopService(serviceIntent)
         }
@@ -241,5 +302,16 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
+    }
+
+    // download book
+    fun downloadBook(url: URL, filename: String){
+        lifecycleScope.launch(Dispatchers.IO){
+            url.openStream().use { input ->
+                FileOutputStream(File(filesDir,filename)).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
     }
 }
