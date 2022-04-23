@@ -24,8 +24,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileReader
+import java.lang.Exception
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Files.exists
@@ -47,7 +50,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     lateinit var my_books : BookList
     lateinit var books : ArrayList<Book>
 
-    var seekProgress: Int = 0
+    var saveProgress: Int = 0
 
     var isConnected = false
     lateinit var audioBinder: PlayerService.MediaControlBinder
@@ -58,11 +61,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         searchButton = findViewById<Button>(R.id.searchButton)
 
         serviceIntent = Intent(this, PlayerService::class.java)
-
-        // creation of our book list from our strings.xml
-        //val authors = resources.getStringArray(R.array.book_authors)
-        //val titles = resources.getStringArray(R.array.book_names)
-
         books = ArrayList()
 
         //initialize books of an empty array to prevent nullable data
@@ -94,6 +92,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             //handleIntent(intent)
         }
 
+        // bind our service to this activity
         bindService(Intent(this, PlayerService::class.java),
             serviceConnection,
             BIND_AUTO_CREATE)
@@ -120,7 +119,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
     // method for fetching the book typed in and uploading it to our fragments
     suspend fun fetchBook(bookID: String){
-        //Log.v("BookID",bookID)
         val jsonArray: JSONArray
         // this gets the url containing each duration JSON ARRAY
         var jsonDuration: JSONObject
@@ -179,6 +177,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         }
     }
 
+    // is our service connected our disconnected
     val serviceConnection = object: ServiceConnection{
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             isConnected = true
@@ -192,15 +191,26 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
 
     // receive information from our fragments buttons
     override fun play() {
-
+        // book file
         val filename = selectedBookViewModel.getSelectedBook().value?.id.toString()
         val file = File(filesDir, filename)
+
+        // progress file
+        val progressFileName = ("Progress").plus(filename)
+        val progressFile = File(filesDir, progressFileName)
 
         // play book from downloaded file
         if(file.exists()){
             // set the playing book
             selectedBookViewModel.getSelectedBook().observe(this){
                 selectedBookViewModel.setPlayingBook(it)
+            }
+
+            // if the progress file exists set the progress to what is saved
+            if(progressFile.exists()){
+                // get progress at first index since we only saved 1 number
+                saveProgress = progressFile.readLines()[0].toInt()
+                Log.v("RECOVERED PROGRESS", saveProgress.toString())
             }
 
             // this part is responsible for moving the sliding according to the progress of the book
@@ -212,7 +222,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                     supportFragmentManager.findFragmentById(R.id.AudioControls)?.run {
                         with(this as ControlFragment) {
                             selectedBookViewModel.getPlayingBook().value?.also {
-                                setPlayProgress(((bookProgress.progress / it.duration.toFloat()) * 100).toInt())
+                                saveProgress = ((bookProgress.progress / it.duration.toFloat()) * 100).toInt()
+                                setPlayProgress(saveProgress)
                             }
                         }
                     }
@@ -244,7 +255,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                     supportFragmentManager.findFragmentById(R.id.AudioControls)?.run {
                         with(this as ControlFragment) {
                             selectedBookViewModel.getPlayingBook().value?.also {
-                                setPlayProgress(((bookProgress.progress / it.duration.toFloat()) * 100).toInt())
+                                saveProgress = ((bookProgress.progress / it.duration.toFloat()) * 100).toInt()
+                                setPlayProgress(saveProgress)
                             }
                         }
                     }
@@ -302,10 +314,23 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
+
+        try{
+            // save the book under the file of the ID plus progress
+            val filename = ("Progress").plus(selectedBookViewModel.getPlayingBook().value?.id.toString())
+            val file = File(filesDir, filename)
+            val outputStream = FileOutputStream(file)
+            outputStream.write(saveProgress.toString().toByteArray())
+            Log.v("Progress SAVED", saveProgress.toString())
+            outputStream.close()
+        }
+        catch (e: Exception){
+            e.printStackTrace()
+        }
     }
 
     // download book
-    fun downloadBook(url: URL, filename: String){
+    private fun downloadBook(url: URL, filename: String){
         lifecycleScope.launch(Dispatchers.IO){
             url.openStream().use { input ->
                 FileOutputStream(File(filesDir,filename)).use { output ->
