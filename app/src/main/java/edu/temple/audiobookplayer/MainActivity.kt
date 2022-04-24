@@ -206,11 +206,17 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                 selectedBookViewModel.setPlayingBook(it)
             }
 
+            var startPosition: Int = 0
             // if the progress file exists set the progress to what is saved
             if(progressFile.exists()){
                 // get progress at first index since we only saved 1 number
                 saveProgress = progressFile.readLines()[0].toInt()
                 Log.v("RECOVERED PROGRESS", saveProgress.toString())
+
+                // get the ratio of the seek bar to the duration of the book
+                selectedBookViewModel.getPlayingBook().value?.also{
+                    startPosition = ((saveProgress.div(100.00)) * it.duration).toInt()
+                }
             }
 
             // this part is responsible for moving the sliding according to the progress of the book
@@ -232,9 +238,11 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
             }
             // pass the handler
             audioBinder.setProgressHandler(audioHandler)
-            //TODO save start position
-            audioBinder.play(file,0)
+
+            Log.v("START POSITION", startPosition.toString())
+            audioBinder.play(file,startPosition)
             Log.v("DOWNLOADED FILE PLAY","TRUE")
+
             startService(serviceIntent)
             return
         }
