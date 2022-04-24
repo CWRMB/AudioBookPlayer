@@ -24,10 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileOutputStream
-import java.io.FileReader
+import java.io.*
 import java.lang.Exception
 import java.net.URL
 import java.nio.file.Files
@@ -61,7 +58,13 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
         searchButton = findViewById<Button>(R.id.searchButton)
 
         serviceIntent = Intent(this, PlayerService::class.java)
-        books = ArrayList()
+
+        // check if we have any saved books
+        if(getBookList().isNotEmpty()){
+            books = getBookList()
+        }else{
+            books = ArrayList()
+        }
 
         //initialize books of an empty array to prevent nullable data
         my_books = BookList(books)
@@ -323,14 +326,59 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         unbindService(serviceConnection)
+        super.onDestroy()
+    }
+
+    override fun onStop(){
         savePosition()
+        saveBookList()
+        super.onStop()
     }
 
     override fun onBackPressed() {
         super.onBackPressed()
         savePosition()
+    }
+
+    private fun getBookList(): ArrayList<Book>{
+        val bookList: ArrayList<Book> = ArrayList()
+        try {
+            val file = File(filesDir, "BookList")
+            if (file.exists()) {
+                val fileInputStream = FileInputStream(file)
+                val objectInputStream = ObjectInputStream(fileInputStream)
+                val count = objectInputStream.readInt()
+                // count is the number of books saved
+                for (i in 0 until count) {
+                    bookList.add(objectInputStream.readObject() as Book)
+                }
+
+            }
+        }
+        catch(e: Exception){
+            e.printStackTrace()
+        }
+        return bookList
+    }
+
+    private fun saveBookList(){
+        try {
+            // save the book under the file of the ID plus progress
+            val filename = "BookList"
+            val file = File(filesDir, filename)
+            val outputStream = FileOutputStream(file)
+            val objectOutputStream = ObjectOutputStream(outputStream)
+            objectOutputStream.writeInt(my_books.books.size)
+            for (book in my_books.books) {
+                objectOutputStream.writeObject(book)
+            }
+            Log.v("Books SAVED", "TRUE")
+            outputStream.close()
+        }
+        catch(e: Exception){
+            e.printStackTrace()
+        }
     }
 
     private fun savePosition(){
