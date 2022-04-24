@@ -288,6 +288,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     override fun pause() {
         if((isConnected)){
             audioBinder.pause()
+            savePosition()
         }
     }
 
@@ -298,6 +299,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
                 with(this as ControlFragment) {
                     selectedBookViewModel.getPlayingBook().value?.also {
                         setPlayProgress(0)
+                        saveProgress = 0
+                        savePosition()
                     }
                 }
             }
@@ -322,7 +325,15 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookFragmentInterface
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
+        savePosition()
+    }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        savePosition()
+    }
+
+    private fun savePosition(){
         try{
             // save the book under the file of the ID plus progress
             val filename = ("Progress").plus(selectedBookViewModel.getPlayingBook().value?.id.toString())
