@@ -1,2 +1,4 @@
-# 3515-Assignment-9
-This branch of the application includes the search function for the book. However, it also incorporate a a media play that utilizing a in-built library. The media player can play book audio. The functions include Playing, Pause, and Stop. There is a slider bar that is reponsible with showing the books progress. The slider can also be moved to skip into different sections of the book.
+# 3515-Assignment-10
+This branch expands off of assignment 9. This app now will write and read files. This means the book is downloaded simultaneously while streaming. The progress and book list searched is also saved via object file writing. These are recovered when possible.
+
+For visuals refer to assignment-9 since the layout has remained the same. Only the background functionality has changed in this assignment.
