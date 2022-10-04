@@ -5,4 +5,4 @@ This project utilizes Android Studio and Kotlin to provide an audio book experie
 
 <div align="left"><img width="194" alt="audiobook1" src="https://user-images.githubusercontent.com/89660661/193858575-4e2fb437-9535-4164-bb17-725818dbe473.PNG"></div>
 
-<div align="center"><img width="195" alt="audiobook2" src="https://user-images.githubusercontent.com/89660661/193858737-7e019c4a-4115-41e1-972a-fdf8bf582c27.PNG"></div>
+<img width="195" alt="audiobook2" src="https://user-images.githubusercontent.com/89660661/193858737-7e019c4a-4115-41e1-972a-fdf8bf582c27.PNG">
